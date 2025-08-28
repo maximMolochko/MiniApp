@@ -1,28 +1,124 @@
-<script>
-// Динамическая загрузка скрипта
-function loadTelegramScript() {
-    return new Promise((resolve, reject) => {
-        if (window.Telegram && window.Telegram.WebApp) {
-            resolve();
-            return;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Mini App</title>
+    
+    <!-- Добавьте эти мета-теги для безопасности -->
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:">
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #ffffff;
+            color: #000000;
         }
-        
-        const script = document.createElement('script');
-        script.src = 'https://telegram.org/js/telegram-web-app.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Не удалось загрузить Telegram API'));
-        document.head.appendChild(script);
-    });
-}
+        button { 
+            background: #40a7e3;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Mini App</h1>
+    <div id="connection-status">Проверка подключения...</div>
+    
+    <button onclick="sendSimpleData()" id="send-btn" disabled>📤 Отправить данные</button>
+    <div id="status">Статус: Ожидание инициализации</div>
 
-// Использование
-loadTelegramScript()
-    .then(() => {
-        console.log('✅ Скрипт загружен');
-        initApp();
-    })
-    .catch(error => {
-        console.error('❌ Ошибка загрузки:', error);
-        showError('Не удалось загрузить Telegram API. Откройте через бота!');
-    });
-</script>
+    <script>
+        // Функция для проверки загрузки Telegram API
+        function checkTelegramLoaded() {
+            let checkCount = 0;
+            const maxChecks = 10;
+            
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                
+                if (window.Telegram && window.Telegram.WebApp) {
+                    clearInterval(checkInterval);
+                    initApp();
+                } else if (checkCount >= maxChecks) {
+                    clearInterval(checkInterval);
+                    showError('Telegram API не загрузился. Откройте через Telegram бота!');
+                }
+            }, 500);
+        }
+
+        function initApp() {
+            document.getElementById('connection-status').textContent = '✅ Telegram API подключен';
+            document.getElementById('send-btn').disabled = false;
+            document.getElementById('status').textContent = 'Статус: Готово к отправке';
+            
+            const tg = window.Telegram.WebApp;
+            
+            // Инициализация
+            tg.ready();
+            tg.expand();
+            
+            console.log('✅ Mini App инициализирован');
+            console.log('👤 User:', tg.initDataUnsafe.user);
+            console.log('🌐 Init Data:', tg.initData);
+        }
+
+        function showError(message) {
+            document.getElementById('connection-status').className = 'error';
+            document.getElementById('connection-status').textContent = '❌ ' + message;
+            document.getElementById('status').textContent = 'Статус: Ошибка';
+        }
+
+        function sendSimpleData() {
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                showError('Telegram API не доступен');
+                return;
+            }
+
+            const tg = window.Telegram.WebApp;
+            const data = {
+                action: 'test_from_github',
+                message: 'Данные с GitHub Pages!',
+                timestamp: new Date().toISOString(),
+                random_id: Math.random().toString(36).substr(2, 9),
+                user_id: tg.initDataUnsafe.user?.id || 'unknown'
+            };
+            
+            document.getElementById('status').textContent = 'Статус: Отправка...';
+            
+            try {
+                tg.sendData(JSON.stringify(data));
+                document.getElementById('status').textContent = '✅ Данные отправлены!';
+                console.log('📤 Данные отправлены:', data);
+            } catch (error) {
+                document.getElementById('status').textContent = '❌ Ошибка: ' + error.message;
+                console.error('Ошибка отправки:', error);
+            }
+        }
+
+        // Запускаем проверку при загрузке
+        window.addEventListener('load', checkTelegramLoaded);
+        
+        // Альтернативная проверка
+        setTimeout(checkTelegramLoaded, 1000);
+    </script>
+</body>
+</html>
