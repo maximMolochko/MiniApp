@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Telegram API Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
 <body>
-    <h1>Simple Test</h1>
+    <h1>Testing Telegram API</h1>
+    <div id="status">Checking...</div>
+
     <script>
-        setTimeout(() => {
-            console.log('Telegram:', window.Telegram);
-            console.log('WebApp:', window.Telegram?.WebApp);
-            alert('Telegram: ' + (window.Telegram ? 'YES' : 'NO'));
-        }, 1000);
+        function checkAPI() {
+            const hasTelegram = !!window.Telegram;
+            const hasWebApp = !!(window.Telegram && window.Telegram.WebApp);
+            
+            document.getElementById('status').innerHTML = `
+                Telegram: ${hasTelegram ? '✅ YES' : '❌ NO'}<br>
+                WebApp: ${hasWebApp ? '✅ YES' : '❌ NO'}<br>
+                URL: ${window.location.href}
+            `;
+            
+            console.log('Telegram object:', window.Telegram);
+            console.log('WebApp object:', window.Telegram?.WebApp);
+        }
+
+        // Проверяем сразу и через задержку
+        checkAPI();
+        setTimeout(checkAPI, 1000);
+        setTimeout(checkAPI, 3000);
     </script>
 </body>
 </html>
