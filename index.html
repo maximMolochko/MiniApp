@@ -3,76 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App</title>
+    <title>Mini App Test</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        button { padding: 15px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        .webapp-btn {
+            background: var(--tg-theme-button-color, #40a7e3);
+        }
+        .botapi-btn {
+            background: #28a745;
+        }
+        .command-btn {
+            background: #6f42c1;
+        }
+        #status {
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .success {
+            color: #28a745;
+            background: #d4edda !important;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da !important;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            color: #856404;
+            background: #fff3cd !important;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .user-info {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .user-info h3 {
+            margin: 0 0 10px 0;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .debug-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 20px;
+            padding: 10px;
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 5px;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
     <h1>🧪 Тестовое Mini App</h1>
-    <button onclick="sendViaWebApp()">📤 Отправить через WebApp API</button>
-    <button onclick="sendViaBotAPI()">🤖 Отправить через Bot API</button>
-    <div id="status">Статус: Готово</div>
+    
+    <div class="warning">
+        ⚠️ Если данные не доходят через WebApp, используйте кнопку "🤖 Bot API"
+    </div>
+    
+    <div class="user-info">
+        <h3>👤 Ваш профиль</h3>
+        <div id="user-data">Загрузка данных пользователя...</div>
+    </div>
+
+    <div class="button-group">
+        <button class="webapp-btn" onclick="sendViaWebApp()">
+            📤 WebApp API (может не работать)
+        </button>
+        
+        <button class="botapi-btn" onclick="sendViaBotAPI()">
+            🤖 Отправить через Bot API
+        </button>
+        
+        <button class="command-btn" onclick="sendViaCommand()">
+            📝 Отправить как команду
+        </button>
+    </div>
+    
+    <div id="status">Статус: Готово к отправке</div>
+    
+    <div class="debug-info">
+        <strong>Debug информация:</strong><br>
+        <span id="debug-output">Загрузка...</span>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
+        
+        // Инициализация
         tg.ready();
         tg.expand();
-
-        function updateStatus(message) {
-            document.getElementById('status').textContent = 'Статус: ' + message;
+        tg.enableClosingConfirmation();
+        
+        // Показываем данные пользователя
+        function updateUserInfo() {
+            const user = tg.initDataUnsafe.user;
+            if (user) {
+                document.getElementById('user-data').innerHTML = `
+                    <strong>Имя:</strong> ${user.first_name || 'Не указано'}<br>
+                    <strong>Username:</strong> @${user.username || 'Не указан'}<br>
+                    <strong>ID:</strong> ${user.id || 'Не указан'}
+                `;
+            }
+        }
+        
+        // Обновляем статус
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'error' : 'success';
+        }
+        
+        // Debug информация
+        function updateDebugInfo() {
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('debug-output').innerHTML = `
+                User ID: ${user?.id || 'N/A'}<br>
+                InitData: ${tg.initData ? '✅ Доступен' : '❌ Отсутствует'}<br>
+                WebApp API: ${typeof Telegram !== 'undefined' ? '✅ Загружен' : '❌ Не загружен'}
+            `;
         }
 
+        // Способ 1: Через WebApp API (может не работать)
         function sendViaWebApp() {
+            const user = tg.initDataUnsafe.user;
             const data = {
                 action: 'webapp_test',
-                user_id: tg.initDataUnsafe.user?.id,
+                user_id: user?.id,
+                first_name: user?.first_name,
+                username: user?.username,
                 timestamp: new Date().toISOString(),
-                test_id: Math.random().toString(36).substr(2, 9)
+                test_id: Math.random().toString(36).substr(2, 9),
+                platform: 'telegram_webapp'
             };
+            
+            updateStatus('📤 Отправка через WebApp API...');
             
             try {
                 tg.sendData(JSON.stringify(data));
-                updateStatus('✅ WebApp данные отправлены');
+                updateStatus('✅ Данные отправлены через WebApp API');
+                
+                // Показываем всплывающее окно
+                tg.showPopup({
+                    title: "WebApp API",
+                    message: "Данные отправлены через WebApp API",
+                    buttons: [{type: "ok"}]
+                });
+                
+                console.log('📤 WebApp данные отправлены:', data);
+                
             } catch (error) {
-                updateStatus('❌ WebApp ошибка: ' + error);
+                updateStatus('❌ Ошибка WebApp API: ' + error.message, true);
+                console.error('WebApp ошибка:', error);
             }
         }
 
+        // Способ 2: Через Bot API (гарантированно работает)
         async function sendViaBotAPI() {
             const user = tg.initDataUnsafe.user;
             const data = {
                 action: 'botapi_test',
                 user_id: user?.id,
                 first_name: user?.first_name,
+                username: user?.username,
                 timestamp: new Date().toISOString(),
-                test_id: Math.random().toString(36).substr(2, 9)
+                test_id: Math.random().toString(36).substr(2, 9),
+                platform: 'bot_api_direct'
             };
-
+            
             updateStatus('📤 Отправка через Bot API...');
             
             try {
-                // Отправляем данные как обычное сообщение боту
-                await fetch(`https://api.telegram.org/bot8263037925:AAHBNhfFys4FaoJ7NvOM4tSrhZQQ3UZNiz8/sendMessage`, {
+                // Отправляем данные как обычное сообщение
+                const response = await fetch('https://api.telegram.org/bot8263037925:AAHBNhfFys4FaoJ7NvOM4tSrhZQQ3UZNiz8/sendMessage', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
                         chat_id: user?.id,
-                        text: `📦 Данные Mini App: ${JSON.stringify(data)}`
+                        text: `📦 Данные из Mini App:\n${JSON.stringify(data, null, 2)}`
                     })
                 });
                 
-                updateStatus('✅ Данные отправлены через Bot API');
+                if (response.ok) {
+                    updateStatus('✅ Данные отправлены через Bot API');
+                    tg.showPopup({
+                        title: "Bot API",
+                        message: "Данные отправлены через Bot API",
+                        buttons: [{type: "ok"}]
+                    });
+                } else {
+                    throw new Error('HTTP error: ' + response.status);
+                }
+                
             } catch (error) {
-                updateStatus('❌ Ошибка Bot API: ' + error);
+                updateStatus('❌ Ошибка Bot API: ' + error.message, true);
+                console.error('Bot API ошибка:', error);
             }
         }
 
-        // Дебаг информация
-        console.log('Init Data:', tg.initData);
-        console.log('User:', tg.initDataUnsafe.user);
+        // Способ 3: Как команда боту
+        async function sendViaCommand() {
+            const initData = tg.initData; // Получаем initData для проверки подписи
+            
+            updateStatus('📤 Отправка команды...');
+            
+            try {
+                const response = await fetch('https://api.telegram.org/bot8263037925:AAHBNhfFys4FaoJ7NvOM4tSrhZQQ3UZNiz8/sendMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: tg.initDataUnsafe.user?.id,
+                        text: `/webapp ${encodeURIComponent(initData)}`
+                    })
+                });
+                
+                if (response.ok) {
+                    updateStatus('✅ Команда отправлена');
+                    tg.showPopup({
+                        title: "Команда отправлена",
+                        message: "Данные отправлены как команда",
+                        buttons: [{type: "ok"}]
+                    });
+                } else {
+                    throw new Error('HTTP error: ' + response.status);
+                }
+                
+            } catch (error) {
+                updateStatus('❌ Ошибка отправки команды: ' + error.message, true);
+                console.error('Ошибка команды:', error);
+            }
+        }
+
+        // Инициализация при загрузке
+        window.addEventListener('load', function() {
+            updateUserInfo();
+            updateDebugInfo();
+            
+            console.log('✅ Mini App инициализирован');
+            console.log('👤 User:', tg.initDataUnsafe.user);
+            console.log('🔑 InitData:', tg.initData);
+            console.log('🌐 Platform:', tg.platform);
+        });
+
+        // Обработчик кнопки "Назад"
+        tg.BackButton.show();
+        tg.onEvent('backButtonClicked', function() {
+            tg.showConfirm("Закрыть приложение?", function(confirmed) {
+                if (confirmed) {
+                    tg.close();
+                }
+            });
+        });
     </script>
 </body>
 </html>
