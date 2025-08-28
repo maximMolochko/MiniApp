@@ -1,32 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Telegram API Test</title>
+    <meta charset="UTF-8">
+    <title>Test Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+    </style>
 </head>
 <body>
-    <h1>Testing Telegram API</h1>
-    <div id="status">Checking...</div>
+    <h1>Test Mini App</h1>
+    <button onclick="sendSimpleData()">Отправить простые данные</button>
+    <button onclick="sendUserData()">Отправить данные пользователя</button>
+    <div id="status">Статус: Готово</div>
 
     <script>
-        function checkAPI() {
-            const hasTelegram = !!window.Telegram;
-            const hasWebApp = !!(window.Telegram && window.Telegram.WebApp);
+        const tg = window.Telegram.WebApp;
+        
+        // Инициализация
+        tg.ready();
+        tg.expand();
+        
+        function sendSimpleData() {
+            const data = {
+                action: 'test_button_click',
+                message: 'Привет из GitHub Pages!',
+                timestamp: new Date().toISOString(),
+                platform: 'github_pages'
+            };
             
-            document.getElementById('status').innerHTML = `
-                Telegram: ${hasTelegram ? '✅ YES' : '❌ NO'}<br>
-                WebApp: ${hasWebApp ? '✅ YES' : '❌ NO'}<br>
-                URL: ${window.location.href}
-            `;
+            document.getElementById('status').textContent = 'Статус: Отправка...';
             
-            console.log('Telegram object:', window.Telegram);
-            console.log('WebApp object:', window.Telegram?.WebApp);
+            try {
+                tg.sendData(JSON.stringify(data));
+                document.getElementById('status').textContent = 'Статус: Данные отправлены!';
+            } catch (error) {
+                document.getElementById('status').textContent = 'Статус: Ошибка отправки: ' + error;
+            }
         }
-
-        // Проверяем сразу и через задержку
-        checkAPI();
-        setTimeout(checkAPI, 1000);
-        setTimeout(checkAPI, 3000);
+        
+        function sendUserData() {
+            const user = tg.initDataUnsafe.user;
+            const data = {
+                action: 'user_data',
+                user_id: user?.id,
+                first_name: user?.first_name,
+                username: user?.username,
+                language_code: user?.language_code,
+                from_github: true
+            };
+            
+            tg.sendData(JSON.stringify(data));
+            document.getElementById('status').textContent = 'Статус: User data sent!';
+        }
+        
+        // Логирование для дебаггинга
+        console.log('Mini App initialized');
+        console.log('User data:', tg.initDataUnsafe.user);
+        console.log('Theme params:', tg.themeParams);
     </script>
 </body>
 </html>
