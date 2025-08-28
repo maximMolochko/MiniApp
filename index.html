@@ -33,7 +33,13 @@
             document.getElementById('status').textContent = 'Статус: Отправка...';
             
             try {
-                tg.sendData(JSON.stringify(data));
+                try {
+                    tg.sendData(JSON.stringify(data));
+                    console.log('Data sent successfully');
+                } catch (error) {
+                    console.error('Send error:', error);
+                }
+                //tg.sendData(JSON.stringify(data));
                 document.getElementById('status').textContent = 'Статус: Данные отправлены!';
             } catch (error) {
                 document.getElementById('status').textContent = 'Статус: Ошибка отправки: ' + error;
@@ -50,8 +56,13 @@
                 language_code: user?.language_code,
                 from_github: true
             };
-            
-            tg.sendData(JSON.stringify(data));
+            try {
+                tg.sendData(JSON.stringify(data));
+                console.log('Data sent successfully');
+            } catch (error) {
+                console.error('Send error:', error);
+            }
+            //tg.sendData(JSON.stringify(data));
             document.getElementById('status').textContent = 'Статус: User data sent!';
         }
         
