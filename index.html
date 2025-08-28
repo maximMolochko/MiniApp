@@ -1,63 +1,39 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мое Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- Подключаем Telegram WebApp API -->
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #222222);
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        button {
-            background-color: var(--tg-theme-button-color, #50a8eb);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <h1>Привет, <span id="user-name">друг</span>! 👋</h1>
-    <p>Это мое первое мини-приложение в Telegram.</p>
-    <button onclick="sendData()">Нажми меня!</button>
-    <p>Статус: <span id="status">Не отправлено</span></p>
+    <button onclick="sendTestData()">Отправить тестовые данные</button>
+    <button onclick="sendFormData()">Отправить форму</button>
 
     <script>
-        // Инициализация WebApp
-        let tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть приложение на весь экран
-        tg.enableClosingConfirmation(); // Спросить при закрытии
-
-        // Получаем данные пользователя из Telegram
-        let user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('user-name').textContent = `${user.first_name}`;
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        function sendTestData() {
+            const data = {
+                action: 'button_clicked',
+                click_count: 5,
+                timestamp: new Date().toISOString()
+            };
+            tg.sendData(JSON.stringify(data));
         }
-
-        // Функция для отправки данных обратно в бот
-        function sendData() {
-            tg.sendData(JSON.stringify({action: "button_clicked", user_id: user?.id}));
-            document.getElementById('status').textContent = "Данные отправлены!";
-            // tg.close(); // Можно закрыть приложение автоматически
+        
+        function sendFormData() {
+            const formData = {
+                action: 'form_submitted',
+                name: 'Иван Иванов',
+                email: 'ivan@example.com',
+                message: 'Привет! Это тестовое сообщение из Mini App',
+                user_id: tg.initDataUnsafe.user?.id
+            };
+            tg.sendData(JSON.stringify(formData));
         }
-
-        // Вешаем обработчик на кнопку "Назад" в Telegram
-        tg.onEvent('backButtonClicked', () => {
-            tg.showPopup({
-                title: "Выход?",
-                message: "Точно хотите выйти?",
-                buttons: [{type: 'ok', id: 'close'}, {type: 'cancel', id: 'cancel'}]
-            });
+        
+        // Обработчик ответа от бота (если нужно)
+        tg.onEvent('viewportChanged', (event) => {
+            console.log('Viewport changed:', event);
         });
     </script>
 </body>
