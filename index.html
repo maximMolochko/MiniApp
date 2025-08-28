@@ -1,28 +1,13 @@
-<script>
-// Динамическая загрузка скрипта
-function loadTelegramScript() {
-    return new Promise((resolve, reject) => {
-        if (window.Telegram && window.Telegram.WebApp) {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement('script');
-        script.src = 'https://telegram.org/js/telegram-web-app.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Не удалось загрузить Telegram API'));
-        document.head.appendChild(script);
-    });
-}
-
-// Использование
-loadTelegramScript()
-    .then(() => {
-        console.log('✅ Скрипт загружен');
-        initApp();
-    })
-    .catch(error => {
-        console.error('❌ Ошибка загрузки:', error);
-        showError('Не удалось загрузить Telegram API. Откройте через бота!');
-    });
-</script>
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Simple Test</h1>
+    <script>
+        setTimeout(() => {
+            console.log('Telegram:', window.Telegram);
+            console.log('WebApp:', window.Telegram?.WebApp);
+            alert('Telegram: ' + (window.Telegram ? 'YES' : 'NO'));
+        }, 1000);
+    </script>
+</body>
+</html>
