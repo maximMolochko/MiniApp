@@ -12,51 +12,36 @@
             background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
         }
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
         button {
             background: var(--tg-theme-button-color, #40a7e3);
             color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            padding: 15px 25px;
-            margin: 10px 0;
+            padding: 15px;
+            margin: 10px;
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
-            width: 100%;
-        }
-        .user-card {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            width: 200px;
         }
         #status {
-            padding: 10px;
-            background: var(--tg-theme-section-bg-color, #f8f9fa);
-            border-radius: 5px;
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 10px;
             margin-top: 20px;
             text-align: center;
         }
+        .success { color: green; }
+        .error { color: red; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 Мое приложение</h1>
-        
-        <div class="user-card">
-            <h3>👤 Ваш профиль</h3>
-            <div id="user-info">Загрузка...</div>
-        </div>
-
-        <button onclick="sendData('like')">👍 Like</button>
-        <button onclick="sendData('dislike')">👎 Dislike</button>
-        <button onclick="sendData('hello')">👋 Say Hello</button>
-
-        <div id="status">Готово к работе</div>
-    </div>
+    <h1>🧪 Тестовое Mini App</h1>
+    
+    <button onclick="sendData('test1')">📤 Тест 1</button>
+    <button onclick="sendData('test2')">📤 Тест 2</button>
+    <button onclick="sendData('test3')">📤 Тест 3</button>
+    
+    <div id="status">Готово к отправке</div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -65,47 +50,52 @@
         tg.ready();
         tg.expand();
         
-        // Показываем данные пользователя
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            document.getElementById('user-info').innerHTML = `
-                <b>Имя:</b> ${user.first_name}<br>
-                <b>Username:</b> @${user.username || 'не указан'}<br>
-                <b>ID:</b> ${user.id}
-            `;
+        console.log('✅ Mini App инициализирован');
+
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'error' : 'success';
         }
 
         function sendData(action) {
+            const user = tg.initDataUnsafe.user;
             const data = {
                 action: action,
                 user_id: user?.id,
                 first_name: user?.first_name,
-                timestamp: new Date().toISOString()
+                username: user?.username,
+                timestamp: new Date().toISOString(),
+                test_id: Math.random().toString(36).substr(2, 9)
             };
             
-            document.getElementById('status').textContent = '📤 Отправка...';
+            updateStatus('📤 Отправка...');
             
             try {
+                // Отправляем данные
                 tg.sendData(JSON.stringify(data));
-                document.getElementById('status').textContent = '✅ Отправлено!';
+                updateStatus('✅ Данные отправлены!');
                 
-                // Можно закрыть приложение после отправки
-                // setTimeout(() => tg.close(), 1000);
+                console.log('📤 Отправлены данные:', data);
+                
+                // Показываем всплывающее окно для подтверждения
+                tg.showPopup({
+                    title: "Успешно!",
+                    message: "Данные отправлены в бота",
+                    buttons: [{type: "ok"}]
+                });
                 
             } catch (error) {
-                document.getElementById('status').textContent = '❌ Ошибка: ' + error;
+                updateStatus('❌ Ошибка отправки: ' + error.message, true);
+                console.error('Ошибка отправки:', error);
             }
         }
 
-        // Добавляем кнопку "Назад"
+        // Добавляем обработчик для кнопки "Назад"
         tg.BackButton.show();
         tg.onEvent('backButtonClicked', () => {
-            tg.showConfirm("Закрыть приложение?", (confirmed) => {
-                if (confirmed) tg.close();
-            });
+            tg.close();
         });
-
-        console.log('Приложение инициализировано:', tg.initDataUnsafe);
     </script>
 </body>
 </html>
